@@ -54,7 +54,9 @@
 -(void)_notifyObserversViewWillAppear:(long long)arg1 {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[%c(SBWiFiManager) sharedInstance];
 	WiFiUtils *WifiDetails = (WiFiUtils *)[%c(WiFiUtils) sharedInstance];
-	SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
+	//SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];			!IMPORTANT!
+	
+	
 	//If Wifi is connected and enabled, don´t turn on cellular data, else if wifi is only enabled, check if there is scanning or joining to any network.
 	//If not, turn on cellular data. Whenever a WiFi is successfully joined, cellular data will turn off automatically.
 	//Else, (contains an argument that WiFi is DISABLED), enable cellular data, because we dont have a WiFi connection.
