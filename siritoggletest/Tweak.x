@@ -1,5 +1,4 @@
 #import <SpringBoard/SpringBoard.h>
-#import <UIKit/UIKit.h>
 
 @interface PSCellularDataSettingsDetail
 @property (readonly) unsigned long long hash; 
