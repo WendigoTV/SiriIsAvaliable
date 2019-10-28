@@ -50,23 +50,47 @@
 - (double)periodicScanInterval;
 @end
 
-static BOOL siriListen = YES;
-
 %hook SBAssistantController
+
+-(void)_viewDidAppearWithType:(long long)arg1 {
+	SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
+	if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] != nil || [%c(PSCellularDataSettingsDetail) isEnabled]) {
+			[_assistantController handleSiriButtonDownEventFromSource:1 activationEvent:1];
+			[_assistantController handleSiriButtonUpEventFromSource:1];
+	}
+}
+
 -(void)_notifyObserversViewWillAppear:(long long)arg1 {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[%c(SBWiFiManager) sharedInstance];
 	WiFiUtils *WifiDetails = (WiFiUtils *)[%c(WiFiUtils) sharedInstance];
 	SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
-	if (siriListen) {
-		[_assistantController dismissPluginForEvent:1];
-	}
-	
 	//If Wifi is connected and enabled, don´t turn on cellular data, else if wifi is only enabled, check if there is scanning or joining to any network.
 	//If not, turn on cellular data. Whenever a WiFi is successfully joined, cellular data will turn off automatically.
 	//Else, (contains an argument that WiFi is DISABLED), enable cellular data, because we dont have a WiFi connection.
 	//When Siri is closed, WiFi connection (if there is any) will remain connected, but cellular data and inactive WiFi will automatically turn off.
 	//If there IS a valid WiFi connection avaliable, cellular data won´t be turned on at all and WiFi connection will be immediately made.
-
+	if ([%c(PSCellularDataSettingsDetail) isEnabled] && ([WifiDetails isJoinInProgress] || [WifiDetails isScanInProgress])) {
+		[WifiToggle setWiFiEnabled:YES];
+		[%c(PSCellularDataSettingsDetail) setEnabled:0];
+	}
+	if ([WifiToggle wiFiEnabled] && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {
+		[_assistantController dismissPluginForEvent:1];
+		double delayInSeconds = 1.7;
+		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+			[_assistantController handleSiriButtonDownEventFromSource:1 activationEvent:1];
+			[_assistantController handleSiriButtonUpEventFromSource:1];
+		});
+	}
+	if (![%c(PSCellularDataSettingsDetail) isEnabled] && ![WifiToggle wiFiEnabled] && (![WifiDetails isJoinInProgress] || ![WifiDetails isScanInProgress])) {
+		[_assistantController dismissPluginForEvent:1];
+		double delayInSeconds = 1.7;
+		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+			[_assistantController handleSiriButtonDownEventFromSource:1 activationEvent:1];
+			[_assistantController handleSiriButtonUpEventFromSource:1];
+		});
+	}
 	if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) { //isn´t connected to any network already
 		if([WifiToggle wiFiEnabled]) {	//WiFi is ON
 				[WifiToggle setWiFiEnabled:NO];
@@ -76,7 +100,7 @@ static BOOL siriListen = YES;
 			}
 		} else {
 		[WifiToggle setWiFiEnabled:YES];
-		double delayInSeconds = 1.0;
+		double delayInSeconds = 0.8;
 		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
 		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
 		if ((![WifiDetails isJoinInProgress] || ![WifiDetails isScanInProgress]) && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {
@@ -88,9 +112,6 @@ static BOOL siriListen = YES;
 	} 
 
 }
-siriListen = NO;
-[_assistantController handleSiriButtonDownEventFromSource:1 activationEvent:1];
-[_assistantController handleSiriButtonUpEventFromSource:1];
 %orig;
 }
 
@@ -102,7 +123,6 @@ siriListen = NO;
 if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {
 	[WifiToggle setWiFiEnabled:NO];
 }
-siriListen = YES;
 %orig;
 }
 %end
