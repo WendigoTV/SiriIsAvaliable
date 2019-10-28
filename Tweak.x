@@ -1,4 +1,5 @@
 #import <SpringBoard/SpringBoard.h>
+#import <Foundation/Foundation.h>
 
 @interface PSCellularDataSettingsDetail
 @property (readonly) unsigned long long hash; 
@@ -49,12 +50,16 @@
 - (double)periodicScanInterval;
 @end
 
+static BOOL siriListen = YES;
+
 %hook SBAssistantController
 -(void)_notifyObserversViewWillAppear:(long long)arg1 {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[%c(SBWiFiManager) sharedInstance];
 	WiFiUtils *WifiDetails = (WiFiUtils *)[%c(WiFiUtils) sharedInstance];
-	//SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];			!IMPORTANT!
-	
+	SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
+	if (siriListen) {
+		[_assistantController dismissPluginForEvent:1];
+	}
 	
 	//If Wifi is connected and enabled, don´t turn on cellular data, else if wifi is only enabled, check if there is scanning or joining to any network.
 	//If not, turn on cellular data. Whenever a WiFi is successfully joined, cellular data will turn off automatically.
@@ -83,6 +88,9 @@
 	} 
 
 }
+siriListen = NO;
+[_assistantController handleSiriButtonDownEventFromSource:1 activationEvent:1];
+[_assistantController handleSiriButtonUpEventFromSource:1];
 %orig;
 }
 
@@ -94,6 +102,7 @@
 if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {
 	[WifiToggle setWiFiEnabled:NO];
 }
+siriListen = YES;
 %orig;
 }
 %end
