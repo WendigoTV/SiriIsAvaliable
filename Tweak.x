@@ -87,15 +87,16 @@
 		[%c(PSCellularDataSettingsDetail) setEnabled:1]; //Enable cellular data
 			}
 		} else {
-		[WifiToggle setWiFiEnabled:YES]; //Enable WiFi
-		double delayInSeconds = 1.0;																													//////
-		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));												//
-		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){																							//
+		[WifiToggle setWiFiEnabled:YES];	//Enable WiFi
+		[WifiDetails triggerScan];		//scan for nearby networks 
+		double delayInSeconds = 2.0;																																				//////
+		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));																			//
+		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){																														//
 		if ((![WifiDetails isJoinInProgress] || ![WifiDetails isScanInProgress]) && [WifiToggle wiFiEnabled] && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) { 		/////////	This gives Siri the least amount of time she needs to catch a breath and enable the most suitable connection for you
-		[%c(PSCellularDataSettingsDetail) setEnabled:1];																									//
-		[WifiToggle setWiFiEnabled:NO];																														//
-		}																																					//
-		});																																				//////
+		[%c(PSCellularDataSettingsDetail) setEnabled:1];																																//
+		[WifiToggle setWiFiEnabled:NO];																																					//
+		}																																												//
+		});																																											//////
 
 	} 
 
