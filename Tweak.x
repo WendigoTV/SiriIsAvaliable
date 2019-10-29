@@ -13,7 +13,7 @@
 +(id)iconImage;
 @end
 
-@interface SBAssistantController
+@interface SBAssistantController : NSObject
 +(BOOL)isAssistantVisible;
 +(BOOL)shouldEnterAssistant;
 +(id)sharedInstance;
@@ -23,6 +23,18 @@
 -(void)addObserver:(id)arg1 ;
 -(void)dismissPluginForEvent:(NSInteger)arg1;
 -(BOOL)isAssistantViewVisible:(long long)arg1 ;
+@end
+
+@interface AFUISiriViewController : UIViewController
+-(void)siriViewDidRecieveStatusViewTappedAction:(id)arg1;
+@end
+
+@interface SBAssistantRootViewController: UIViewController
+@property (nonatomic, assign) AFUISiriViewController *assistantController;
+@end
+
+@interface SBAssistantWindow : UIWindow
+@property (nonatomic, assign) SBAssistantRootViewController *assistantRootViewController;
 @end
 
 @interface SBWiFiManager
@@ -52,75 +64,61 @@
 
 %hook SBAssistantController
 
--(void)_viewDidAppearWithType:(long long)arg1 {
-	SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
-	if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] != nil || [%c(PSCellularDataSettingsDetail) isEnabled]) {
-			[_assistantController handleSiriButtonDownEventFromSource:1 activationEvent:1];
-			[_assistantController handleSiriButtonUpEventFromSource:1];
-	}
-}
-
 -(void)_notifyObserversViewWillAppear:(long long)arg1 {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[%c(SBWiFiManager) sharedInstance];
 	WiFiUtils *WifiDetails = (WiFiUtils *)[%c(WiFiUtils) sharedInstance];
-	SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
+	//SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
+
 	//If Wifi is connected and enabled, don´t turn on cellular data, else if wifi is only enabled, check if there is scanning or joining to any network.
 	//If not, turn on cellular data. Whenever a WiFi is successfully joined, cellular data will turn off automatically.
 	//Else, (contains an argument that WiFi is DISABLED), enable cellular data, because we dont have a WiFi connection.
 	//When Siri is closed, WiFi connection (if there is any) will remain connected, but cellular data and inactive WiFi will automatically turn off.
 	//If there IS a valid WiFi connection avaliable, cellular data won´t be turned on at all and WiFi connection will be immediately made.
-	if ([%c(PSCellularDataSettingsDetail) isEnabled] && ([WifiDetails isJoinInProgress] || [WifiDetails isScanInProgress])) {
+
+	if ([%c(PSCellularDataSettingsDetail) isEnabled] && ([WifiDetails isJoinInProgress] || [WifiDetails isScanInProgress])) { //this is a precaution for you using cellular data with WiFi avaliable
 		[WifiToggle setWiFiEnabled:YES];
 		[%c(PSCellularDataSettingsDetail) setEnabled:0];
 	}
-	if ([WifiToggle wiFiEnabled] && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {
-		[_assistantController dismissPluginForEvent:1];
-		double delayInSeconds = 1.7;
-		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-			[_assistantController handleSiriButtonDownEventFromSource:1 activationEvent:1];
-			[_assistantController handleSiriButtonUpEventFromSource:1];
-		});
-	}
-	if (![%c(PSCellularDataSettingsDetail) isEnabled] && ![WifiToggle wiFiEnabled] && (![WifiDetails isJoinInProgress] || ![WifiDetails isScanInProgress])) {
-		[_assistantController dismissPluginForEvent:1];
-		double delayInSeconds = 1.7;
-		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-			[_assistantController handleSiriButtonDownEventFromSource:1 activationEvent:1];
-			[_assistantController handleSiriButtonUpEventFromSource:1];
-		});
-	}
 	if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) { //isn´t connected to any network already
-		if([WifiToggle wiFiEnabled]) {	//WiFi is ON
+		if([WifiToggle wiFiEnabled]) {	//WiFi is ON, BUT isn´t connected to any network, so we restart WiFi to avoid conflicts caused by the user not having RealCC installed
 				[WifiToggle setWiFiEnabled:NO];
 				[WifiToggle setWiFiEnabled:YES]; 
 			if (![WifiDetails isJoinInProgress] || ![WifiDetails isScanInProgress]) { //There is no joining or scanning going on
-		[%c(PSCellularDataSettingsDetail) setEnabled:1];
+		[%c(PSCellularDataSettingsDetail) setEnabled:1]; //Enable cellular data
 			}
 		} else {
-		[WifiToggle setWiFiEnabled:YES];
-		double delayInSeconds = 0.8;
-		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
-		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-		if ((![WifiDetails isJoinInProgress] || ![WifiDetails isScanInProgress]) && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {
-		[%c(PSCellularDataSettingsDetail) setEnabled:1];
-		[WifiToggle setWiFiEnabled:NO];
-		}
-		});
+		[WifiToggle setWiFiEnabled:YES]; //Enable WiFi
+		double delayInSeconds = 0.8;																													//////
+		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));												//
+		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){																							//
+		if ((![WifiDetails isJoinInProgress] || ![WifiDetails isScanInProgress]) && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) { 		/////////	This gives Siri the least amount of time she needs to catch a breath and enable the most suitable connection for you
+		[%c(PSCellularDataSettingsDetail) setEnabled:1];																									//
+		[WifiToggle setWiFiEnabled:NO];																														//
+		}																																					//
+		});																																				//////
 
 	} 
 
 }
-%orig;
+%orig;	//make Siri return to her normal job
+}
+
+-(void)_viewDidAppearWithType:(long long)arg1 {
+	double delayInSeconds = 1.2;	
+		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));			
+		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){						
+		if ([%c(SBAssistantController) isAssistantVisible] && ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] != nil || [%c(PSCellularDataSettingsDetail) isEnabled])) {
+			[[[(SBAssistantWindow *)[(NSObject *)[%c(SBAssistantController) sharedInstance] valueForKey:@"_assistantWindow"] assistantRootViewController] assistantController] siriViewDidRecieveStatusViewTappedAction:nil];	//Make Siri listen to you after she´s done with connecting!																													//
+		}
+	});				
 }
 
 -(void)_viewDidDisappearOnMainScreen:(BOOL)arg1 {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[%c(SBWiFiManager) sharedInstance];
 	//SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
-	
-[%c(PSCellularDataSettingsDetail) setEnabled:0];
-if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {
+
+[%c(PSCellularDataSettingsDetail) setEnabled:0];	// Turn off cellular data after closing Siri so we don´t leave them open to drain
+if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {	//If WiFi isn´t connected, turn that off as well...
 	[WifiToggle setWiFiEnabled:NO];
 }
 %orig;
