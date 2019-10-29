@@ -1,9 +1,9 @@
-Package: com.watchtower.togglesiri
-Name: SiriToggleTest
+Package: com.watchtower.siriisavaliable
+Name: SiriIsAvaliable
 Depends: mobilesubstrate
-Version: 0.0.1
+Version: 1.0
 Architecture: iphoneos-arm
-Description: An awesome MobileSubstrate tweak!
+Description: Make Siri choose her way to connect! "Siri not avaliable" is no more!
 Maintainer: WendigoTV
 Author: WendigoTV
 Section: Tweaks
