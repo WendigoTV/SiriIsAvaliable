@@ -105,13 +105,22 @@
 }
 
 -(void)_viewDidAppearWithType:(long long)arg1 {
-	double delayInSeconds = 1.2;	
+	double delayInSeconds = 1.5;	
 		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));			
 		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){						
-		if ([%c(SBAssistantController) isAssistantVisible] && ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] != nil || [%c(PSCellularDataSettingsDetail) isEnabled])) {
-			[[[(SBAssistantWindow *)[(NSObject *)[%c(SBAssistantController) sharedInstance] valueForKey:@"_assistantWindow"] assistantRootViewController] assistantController] siriViewDidRecieveStatusViewTappedAction:nil];	//Make Siri listen to you after she´s done with connecting!																													//
+		if ([%c(SBAssistantController) isAssistantVisible] && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] != nil) {
+			[[[(SBAssistantWindow *)[(NSObject *)[%c(SBAssistantController) sharedInstance] valueForKey:@"_assistantWindow"] assistantRootViewController] assistantController] siriViewDidRecieveStatusViewTappedAction:nil];	//Make Siri listen to you after she´s done with connecting!		
+																											
 		}
-	});				
+		double delayInSeconds = 0.5;	
+		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));			
+		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){						
+		if ([%c(SBAssistantController) isAssistantVisible] && [%c(PSCellularDataSettingsDetail) isEnabled]) {
+			[[[(SBAssistantWindow *)[(NSObject *)[%c(SBAssistantController) sharedInstance] valueForKey:@"_assistantWindow"] assistantRootViewController] assistantController] siriViewDidRecieveStatusViewTappedAction:nil];																										
+		}
+	});	
+	});	
+		
 }
 
 -(void)_viewDidDisappearOnMainScreen:(BOOL)arg1 {
