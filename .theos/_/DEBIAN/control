@@ -1,9 +1,11 @@
 Package: com.watchtower.siriisavaliable
 Name: SiriIsAvaliable
 Depends: mobilesubstrate
-Version: 1.0
 Architecture: iphoneos-arm
 Description: Make Siri choose her way to connect! "Siri not avaliable" is no more!
 Maintainer: WendigoTV
 Author: WendigoTV
 Section: Tweaks
+Icon: https://raw.githubusercontent.com/WendigoTV/SiriIsAvaliable/master/layout/Library/Application%20Support/SiriIsAvaliable/icon.png
+Version: 1.0-2+debug-15+debug
+Installed-Size: 173
