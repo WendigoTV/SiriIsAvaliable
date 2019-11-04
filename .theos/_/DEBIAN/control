@@ -1,6 +1,6 @@
 Package: com.watchtower.siriisavaliable
 Name: SiriIsAvaliable
-Depends: mobilesubstrate
+Depends: mobilesubstrate, crux
 Architecture: iphoneos-arm
 Description: Make Siri choose her way to connect! "Siri not avaliable" is no more!
 Maintainer: WendigoTV
