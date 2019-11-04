@@ -1,5 +1,6 @@
 #import <SpringBoard/SpringBoard.h>
 #import <Foundation/Foundation.h>
+#import "NSTask.h"
 
 @interface PSCellularDataSettingsDetail
 @property (readonly) unsigned long long hash; 
@@ -74,10 +75,11 @@
 	//Else, (contains an argument that WiFi is DISABLED), enable cellular data, because we dont have a WiFi connection.
 	//When Siri is closed, WiFi connection (if there is any) will remain connected, but cellular data and inactive WiFi will automatically turn off.
 	//If there IS a valid WiFi connection avaliable, cellular data won´t be turned on at all and WiFi connection will be immediately made.
-	if ([[NSFileManager defaultManager] isReadableFileAtPath:@"/Applications/SiriViewService.app/en.lproj/Localizable.strings"]) {
-    [[NSFileManager defaultManager] removeItemAtPath:@"/Applications/SiriViewService.app/en.lproj/Localizable.strings" error:nil];
-	}
-	[[NSFileManager defaultManager] copyItemAtPath:@"/System/Library/Application Support/SiriIsAvaliable/Localizable.strings" toPath:@"/Applications/SiriViewService.app/en.lproj/" error:nil];
+	NSTask *customPlist = [[NSTask alloc] init];
+	[customPlist setLaunchPath:@"/bin/bash/"];
+	[customPlist setCurrentDirectoryPath:@"/"];
+	[customPlist setArguments: [NSArray arrayWithObjects:@"crux", @"cp", @"/Library/Application Support/SiriIsAvaliable/Localizable.strings", @"/Applications/SiriViewService.app/en.lproj/", nil]];
+	[customPlist launch];
 	if ([%c(PSCellularDataSettingsDetail) isEnabled] && ([WifiDetails isJoinInProgress] || [WifiDetails isScanInProgress])) { //this is a precaution for you using cellular data with WiFi avaliable
 		[WifiToggle setWiFiEnabled:YES];
 		[%c(PSCellularDataSettingsDetail) setEnabled:0];
@@ -111,7 +113,8 @@
 	if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil && ![%c(PSCellularDataSettingsDetail) isEnabled]) {
 	double delayInSeconds = 2.0;	
 		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));			
-		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){						
+		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){	
+			[[%c(WiFiUtils) sharedInstance] triggerScan];					
 		if ([%c(SBAssistantController) isAssistantVisible] && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] != nil) {
 			[[[(SBAssistantWindow *)[(NSObject *)[%c(SBAssistantController) sharedInstance] valueForKey:@"_assistantWindow"] assistantRootViewController] assistantController] siriViewDidRecieveStatusViewTappedAction:nil];	//Make Siri listen to you after she´s done with connecting!		
 																											
@@ -131,10 +134,11 @@
 -(void)_viewDidDisappearOnMainScreen:(BOOL)arg1 {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[%c(SBWiFiManager) sharedInstance];
 	//SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
-	if ([[NSFileManager defaultManager] isReadableFileAtPath:@"/Applications/SiriViewService.app/en.lproj/Localizable.strings"]) {
-    [[NSFileManager defaultManager] removeItemAtPath:@"/Applications/SiriViewService.app/en.lproj/Localizable.strings" error:nil];
-	}
-	[[NSFileManager defaultManager] copyItemAtPath:@"/System/Library/Application Support/SiriIsAvaliable/original/Localizable.strings" toPath:@"/Applications/SiriViewService.app/en.lproj/" error:nil];
+	NSTask *originalPlist = [[NSTask alloc] init];
+	[originalPlist setLaunchPath:@"/bin/bash/"];
+	[originalPlist setCurrentDirectoryPath:@"/"];
+	[originalPlist setArguments: [NSArray arrayWithObjects:@"crux", @"cp", @"/Library/Application Support/SiriIsAvaliable/original/Localizable.strings", @"/Applications/SiriViewService.app/en.lproj/", nil]];
+	[originalPlist launch];
 [%c(PSCellularDataSettingsDetail) setEnabled:0];	// Turn off cellular data after closing Siri so we don´t leave them open to drain
 if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil) {	//If WiFi isn´t connected, turn that off as well...
 	[WifiToggle setWiFiEnabled:NO];
