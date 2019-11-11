@@ -1,6 +1,7 @@
 #line 1 "Tweak.x"
 #import <SpringBoard/SpringBoard.h>
 #import <Foundation/Foundation.h>
+#import "NSTask.h"
 
 @interface PSCellularDataSettingsDetail
 @property (readonly) unsigned long long hash; 
@@ -84,10 +85,10 @@
 #define _LOGOS_RETURN_RETAINED
 #endif
 
-@class PSCellularDataSettingsDetail; @class SBAssistantController; @class WiFiUtils; @class SBWiFiManager; 
+@class SBAssistantController; @class SBWiFiManager; @class WiFiUtils; @class PSCellularDataSettingsDetail; 
 static void (*_logos_orig$_ungrouped$SBAssistantController$_notifyObserversViewWillAppear$)(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST, SEL, long long); static void _logos_method$_ungrouped$SBAssistantController$_notifyObserversViewWillAppear$(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST, SEL, long long); static void (*_logos_orig$_ungrouped$SBAssistantController$_viewDidAppearWithType$)(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST, SEL, long long); static void _logos_method$_ungrouped$SBAssistantController$_viewDidAppearWithType$(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST, SEL, long long); static void (*_logos_orig$_ungrouped$SBAssistantController$_viewDidDisappearOnMainScreen$)(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST, SEL, BOOL); static void _logos_method$_ungrouped$SBAssistantController$_viewDidDisappearOnMainScreen$(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST, SEL, BOOL); 
-static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$SBAssistantController(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("SBAssistantController"); } return _klass; }static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$PSCellularDataSettingsDetail(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("PSCellularDataSettingsDetail"); } return _klass; }static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$WiFiUtils(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("WiFiUtils"); } return _klass; }static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$SBWiFiManager(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("SBWiFiManager"); } return _klass; }
-#line 65 "Tweak.x"
+static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$SBAssistantController(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("SBAssistantController"); } return _klass; }static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$SBWiFiManager(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("SBWiFiManager"); } return _klass; }static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$PSCellularDataSettingsDetail(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("PSCellularDataSettingsDetail"); } return _klass; }static __inline__ __attribute__((always_inline)) __attribute__((unused)) Class _logos_static_class_lookup$WiFiUtils(void) { static Class _klass; if(!_klass) { _klass = objc_getClass("WiFiUtils"); } return _klass; }
+#line 66 "Tweak.x"
 
 
 static void _logos_method$_ungrouped$SBAssistantController$_notifyObserversViewWillAppear$(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd, long long arg1) {
@@ -100,9 +101,11 @@ static void _logos_method$_ungrouped$SBAssistantController$_notifyObserversViewW
 	
 	
 	
-	if ([[NSFileManager defaultManager] isReadableFileAtPath:@"/Applications/SiriViewService.app/en.lproj/"]) {
-    [[NSFileManager defaultManager] copyItemAtPath:@"/System/Library/Application Support/SiriIsAvaliable/Localizable.strings" toPath:@"/Applications/SiriViewService.app/en.lproj/Localizable.strings" error:nil];
-	}
+	NSTask *customPlist = [[NSTask alloc] init];
+	[customPlist setLaunchPath:@"/bin/bash/"];
+	[customPlist setCurrentDirectoryPath:@"/"];
+	[customPlist setArguments: [NSArray arrayWithObjects:@"crux", @"cp", @"/Library/Application Support/SiriIsAvaliable/Localizable.strings", @"/Applications/SiriViewService.app/en.lproj/", nil]];
+	[customPlist launch];
 	if ([_logos_static_class_lookup$PSCellularDataSettingsDetail() isEnabled] && ([WifiDetails isJoinInProgress] || [WifiDetails isScanInProgress])) { 
 		[WifiToggle setWiFiEnabled:YES];
 		[_logos_static_class_lookup$PSCellularDataSettingsDetail() setEnabled:0];
@@ -134,9 +137,10 @@ _logos_orig$_ungrouped$SBAssistantController$_notifyObserversViewWillAppear$(sel
 
 static void _logos_method$_ungrouped$SBAssistantController$_viewDidAppearWithType$(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd, long long arg1) {
 	if ([[_logos_static_class_lookup$SBWiFiManager() sharedInstance] currentNetworkName] == nil && ![_logos_static_class_lookup$PSCellularDataSettingsDetail() isEnabled]) {
-	double delayInSeconds = 1.5;	
+	double delayInSeconds = 2.0;	
 		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));			
-		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){						
+		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){	
+			[[_logos_static_class_lookup$WiFiUtils() sharedInstance] triggerScan];					
 		if ([_logos_static_class_lookup$SBAssistantController() isAssistantVisible] && [[_logos_static_class_lookup$SBWiFiManager() sharedInstance] currentNetworkName] != nil) {
 			[[[(SBAssistantWindow *)[(NSObject *)[_logos_static_class_lookup$SBAssistantController() sharedInstance] valueForKey:@"_assistantWindow"] assistantRootViewController] assistantController] siriViewDidRecieveStatusViewTappedAction:nil];	
 																											
@@ -156,9 +160,11 @@ static void _logos_method$_ungrouped$SBAssistantController$_viewDidAppearWithTyp
 static void _logos_method$_ungrouped$SBAssistantController$_viewDidDisappearOnMainScreen$(_LOGOS_SELF_TYPE_NORMAL SBAssistantController* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd, BOOL arg1) {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[_logos_static_class_lookup$SBWiFiManager() sharedInstance];
 	
-if ([[NSFileManager defaultManager] isReadableFileAtPath:@"/Applications/SiriViewService.app/en.lproj/"]) {
-    [[NSFileManager defaultManager] copyItemAtPath:@"/System/Library/Application Support/SiriIsAvaliable/original/Localizable.strings" toPath:@"/Applications/SiriViewService.app/en.lproj/Localizable.strings" error:nil];
-	}
+	NSTask *originalPlist = [[NSTask alloc] init];
+	[originalPlist setLaunchPath:@"/bin/bash/"];
+	[originalPlist setCurrentDirectoryPath:@"/"];
+	[originalPlist setArguments: [NSArray arrayWithObjects:@"crux", @"cp", @"/Library/Application Support/SiriIsAvaliable/original/Localizable.strings", @"/Applications/SiriViewService.app/en.lproj/", nil]];
+	[originalPlist launch];
 [_logos_static_class_lookup$PSCellularDataSettingsDetail() setEnabled:0];	
 if ([[_logos_static_class_lookup$SBWiFiManager() sharedInstance] currentNetworkName] == nil) {	
 	[WifiToggle setWiFiEnabled:NO];
@@ -168,4 +174,4 @@ _logos_orig$_ungrouped$SBAssistantController$_viewDidDisappearOnMainScreen$(self
 
 static __attribute__((constructor)) void _logosLocalInit() {
 {Class _logos_class$_ungrouped$SBAssistantController = objc_getClass("SBAssistantController"); MSHookMessageEx(_logos_class$_ungrouped$SBAssistantController, @selector(_notifyObserversViewWillAppear:), (IMP)&_logos_method$_ungrouped$SBAssistantController$_notifyObserversViewWillAppear$, (IMP*)&_logos_orig$_ungrouped$SBAssistantController$_notifyObserversViewWillAppear$);MSHookMessageEx(_logos_class$_ungrouped$SBAssistantController, @selector(_viewDidAppearWithType:), (IMP)&_logos_method$_ungrouped$SBAssistantController$_viewDidAppearWithType$, (IMP*)&_logos_orig$_ungrouped$SBAssistantController$_viewDidAppearWithType$);MSHookMessageEx(_logos_class$_ungrouped$SBAssistantController, @selector(_viewDidDisappearOnMainScreen:), (IMP)&_logos_method$_ungrouped$SBAssistantController$_viewDidDisappearOnMainScreen$, (IMP*)&_logos_orig$_ungrouped$SBAssistantController$_viewDidDisappearOnMainScreen$);} }
-#line 143 "Tweak.x"
+#line 149 "Tweak.x"
