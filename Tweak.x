@@ -15,15 +15,13 @@
 @end
 
 @interface SBAssistantController : NSObject
-+(BOOL)isAssistantVisible;
-+(BOOL)shouldEnterAssistant;
++(BOOL)isVisible;
 +(id)sharedInstance;
--(BOOL)handleSiriButtonDownEventFromSource:(NSInteger)arg1 activationEvent:(NSInteger)arg2;
--(void)_notifyObserversViewWillAppear:(long long)arg1 ;
--(void)handleSiriButtonUpEventFromSource:(NSInteger)arg1;
--(void)addObserver:(id)arg1 ;
--(void)dismissPluginForEvent:(NSInteger)arg1;
--(BOOL)isAssistantViewVisible:(long long)arg1 ;
+-(BOOL)isEnabled;
+-(BOOL)isVisible;
+-(void)_setVisible:(BOOL)arg1 ;
+-(void)_viewDidAppearOnMainScreen:(BOOL)arg1 ;
+-(void)_viewDidDisappearOnMainScreen:(BOOL)arg1 ;
 @end
 
 @interface AFUISiriViewController : UIViewController
@@ -109,20 +107,20 @@
 %orig;	//make Siri return to her normal job
 }
 
--(void)_viewDidAppearWithType:(long long)arg1 {
+-(void)_viewDidAppearOnMainScreen:(BOOL)arg1 {
 	if ([[%c(SBWiFiManager) sharedInstance] currentNetworkName] == nil && ![%c(PSCellularDataSettingsDetail) isEnabled]) {
 	double delayInSeconds = 2.0;	
 		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));			
 		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){	
 			[[%c(WiFiUtils) sharedInstance] triggerScan];					
-		if ([%c(SBAssistantController) isAssistantVisible] && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] != nil) {
+		if ([%c(SBAssistantController) isVisible] && [[%c(SBWiFiManager) sharedInstance] currentNetworkName] != nil) {
 			[[[(SBAssistantWindow *)[(NSObject *)[%c(SBAssistantController) sharedInstance] valueForKey:@"_assistantWindow"] assistantRootViewController] assistantController] siriViewDidRecieveStatusViewTappedAction:nil];	//Make Siri listen to you after she´s done with connecting!		
 																											
 		}
 		double delayInSeconds = 0.5;	
 		dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));			
 		dispatch_after(popTime, dispatch_get_main_queue(), ^(void){						
-		if ([%c(SBAssistantController) isAssistantVisible] && [%c(PSCellularDataSettingsDetail) isEnabled]) {
+		if ([%c(SBAssistantController) isVisible] && [%c(PSCellularDataSettingsDetail) isEnabled]) {
 			[[[(SBAssistantWindow *)[(NSObject *)[%c(SBAssistantController) sharedInstance] valueForKey:@"_assistantWindow"] assistantRootViewController] assistantController] siriViewDidRecieveStatusViewTappedAction:nil];																										
 		}
 	});	
