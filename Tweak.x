@@ -20,6 +20,8 @@
 -(BOOL)isEnabled;
 -(BOOL)isVisible;
 -(void)_setVisible:(BOOL)arg1 ;
+-(void)_viewWillAppearOnMainScreen:(BOOL)arg1 ;
+-(void)_viewWillDisappearOnMainScreen:(BOOL)arg1 ;
 -(void)_viewDidAppearOnMainScreen:(BOOL)arg1 ;
 -(void)_viewDidDisappearOnMainScreen:(BOOL)arg1 ;
 @end
@@ -63,7 +65,7 @@
 
 %hook SBAssistantController
 
--(void)_setVisible:(BOOL)arg1 {
+-(void)_viewWillAppearOnMainScreen:(BOOL)arg1 {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[%c(SBWiFiManager) sharedInstance];
 	WiFiUtils *WifiDetails = (WiFiUtils *)[%c(WiFiUtils) sharedInstance];
 	//SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
