@@ -63,7 +63,7 @@
 
 %hook SBAssistantController
 
--(void)_notifyObserversViewWillAppear:(long long)arg1 {
+-(void)_setVisible:(BOOL)arg1 {
 	SBWiFiManager *WifiToggle = (SBWiFiManager *)[%c(SBWiFiManager) sharedInstance];
 	WiFiUtils *WifiDetails = (WiFiUtils *)[%c(WiFiUtils) sharedInstance];
 	//SBAssistantController *_assistantController = [%c(SBAssistantController) sharedInstance];
